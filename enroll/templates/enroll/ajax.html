@@ -1,0 +1,113 @@
+<script>
+    //Insert  
+    $('#btnsave').click(function () {
+        console.log("Clicked Save")
+        output=""
+        let stuid = $('#stuid').val()
+        let nm = $('#nameid').val()
+        let em = $('#emailid').val()
+        let pm = $('#passwordid').val()
+        let csr = $("input[name='csrfmiddlewaretoken']").val()
+        if (nm==""){
+            console.log("Input")
+        }else if(em==""){
+            console.log("Input")
+        }else if(pm == "" ){
+            console.log("Input")
+        }else{
+            //console.log(nm)
+            //console.log(em)
+            //console.log(pm)
+            mydata ={sid:stuid, name:nm, email: em, password: pm, csrfmiddlewaretoken: csr}
+            $.ajax({
+                url: "{% url 'save' %}",
+                method: "POST",
+                data: mydata,
+                dataType: "json",
+                success: function(data){
+                    //console.log(data.status)
+                    x = data.student_data
+                    //console.log(x)
+                    if(data.status=='Saved'){
+                        $('#msg').text("Data is saved")
+                        $('#msg').show()
+                        console.log("Data is Saved")
+                        for(i=0; i<x.length; i++){
+                           output += 
+                                "<tr><td>"+ 
+                                x[i].id + 
+                                "</td><td>" + 
+                                x[i].name +
+                                "</td><td>" + 
+                                x[i].email + 
+                                "</td><td>" + 
+                                x[i].password + 
+                                "</td><td><input type='button' class='btn btn-warning btn-sm btn-edit' value='Edit' data-sid="+ x[i].id + "> <input type='button'class='btn btn-info btn-sm btn-del' value='Remove' data-sid="+ x[i].id + "></td></tr>"
+                        }
+
+                        //console.log(data.student_data)
+                        $('#tbody').html(output)
+                        $("#stuid").val('')
+                        $('form')[0].reset()
+                    
+                    }else{
+                        console.log("Unable to Save")
+                        $("#stuid").val('')
+                        $('form')[0].reset()
+                    }
+
+                }
+
+            })
+        }
+
+    })
+   
+    //Delete Data
+    $('tbody').on("click", ".btn-del", function(){
+        console.log("Delete Botton Clicked")
+        let id = $(this).attr("data-sid")
+        let csr = $("input[name='csrfmiddlewaretoken']").val()
+        mythis = this
+        console.log(id)
+        mydata = {sid:id, csrfmiddlewaretoken:csr} //Passing id as an object to views
+        $.ajax({
+            url:"{% url 'delete'%}",
+            method: "POST",
+            data: mydata,
+            success: function(data){
+                console.log(data)
+                if(data.status == 1){
+                    console.log("Data is Deleted")
+                    $(mythis).closest("tr").fadeOut()
+                }
+                if(data.status == 0){
+                    console.log("Data not Deleted")
+                }
+            }
+        })
+    })
+
+    //Edit Data
+    $('tbody').on("click", ".btn-edit", function(){
+        console.log("Edit Botton Clicked")
+        let id = $(this).attr("data-sid")
+        let csr = $("input[name='csrfmiddlewaretoken']").val()
+        console.log(id)
+        mydata = {sid:id, csrfmiddlewaretoken:csr} //Passing id as an object to views
+        $.ajax({
+            url:"{% url 'edit'%}",
+            method: "POST",
+            data: mydata,
+            success: function(data){
+                //console.log(data)
+                $('#stuid').val(data.id)
+                $("#nameid").val(data.name)
+                $("#emailid").val(data.email)
+                $("#passwordid").val(data.password)
+                
+               
+            }
+        })
+    })
+</script>
